@@ -23,5 +23,22 @@ public NoteGUI() {
     this.deleteButton = new JButton("Delete");
     this.editButton = new JButton("Edit");
     this.frame = new JFrame("Simple Notes");
+
+
+    frame.setSize(1080, 720);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+    frame.add(list);
+    frame.add(field);
+    frame.add(area);
+    frame.add(addButton);
+    frame.add(deleteButton);
+    frame.add(editButton);
+
+    frame.setVisible(true);
+}
+
+public static void main(String[] args) {
+    new NoteGUI();
 }
 }
