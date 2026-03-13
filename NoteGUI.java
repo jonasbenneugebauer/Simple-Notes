@@ -1,3 +1,4 @@
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -19,11 +20,12 @@ private JButton addButton;
 private JButton deleteButton;
 private JButton editButton;
 private JFrame frame;
+private DefaultListModel<String> listModel;
+
 
 
 
 public NoteGUI() {
-    this.list = new JList();
     this.field = new JTextField();
     this.area = new JTextArea();
     JScrollPane scrollPane = new JScrollPane(area);
@@ -31,6 +33,8 @@ public NoteGUI() {
     this.deleteButton = new JButton("Delete");
     this.editButton = new JButton("Edit");
     this.frame = new JFrame("Simple Notes");
+    this.listModel = new DefaultListModel<>();
+    this.list = new JList<>(listModel);
 
     frame.setLayout(new BorderLayout());
 
@@ -65,6 +69,8 @@ public NoteGUI() {
     frame.setVisible(true);
 
     addButton.addActionListener(e -> addNote());
+    deleteButton.addActionListener(e -> deleteNote());
+    
 }
 
 public static void main(String[] args) {
@@ -75,20 +81,23 @@ public void addNote(){
     String title = field.getText();
     String content = area.getText();
 
-    if(title.isEmpty() || content.isEmpty()){
+    if(title.isEmpty() || content.isEmpty()) return;
         System.out.println("Title or content cannot be empty.");
-        return;
-    }
+        
     Note note = new Note(LocalDateTime.now(), title, content);
     System.out.println("Note added: " + title);
+
+    listModel.addElement(note.getTitle());
 }
 
 public void deleteNote(){
     int selectedIndex = list.getSelectedIndex();
     if(selectedIndex != -1){
-        // Remove the note from the list
+        listModel.remove(selectedIndex);
         System.out.println("Note deleted: " + selectedIndex);
     } else {
         System.out.println("No note selected.");
     }
+}
+
 }
