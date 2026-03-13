@@ -5,11 +5,11 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.border.Border;
 import javax.swing.JScrollPane;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.time.LocalDateTime;
 public class NoteGUI {
     
 private JList list;
@@ -41,7 +41,6 @@ public NoteGUI() {
 
     JPanel rightPanel = new JPanel();
     rightPanel.setLayout(new BorderLayout());
-    rightPanel.add(field, BorderLayout.NORTH);
     rightPanel.add(scrollPane, BorderLayout.CENTER);
 
     JPanel buttonPanel = new JPanel();
@@ -64,9 +63,32 @@ public NoteGUI() {
     list.setPreferredSize(new Dimension(300, 0));
 
     frame.setVisible(true);
+
+    addButton.addActionListener(e -> addNote());
 }
 
 public static void main(String[] args) {
     new NoteGUI();
 }
+
+public void addNote(){
+    String title = field.getText();
+    String content = area.getText();
+
+    if(title.isEmpty() || content.isEmpty()){
+        System.out.println("Title or content cannot be empty.");
+        return;
+    }
+    Note note = new Note(LocalDateTime.now(), title, content);
+    System.out.println("Note added: " + title);
+}
+
+public void deleteNote(){
+    int selectedIndex = list.getSelectedIndex();
+    if(selectedIndex != -1){
+        // Remove the note from the list
+        System.out.println("Note deleted: " + selectedIndex);
+    } else {
+        System.out.println("No note selected.");
+    }
 }
