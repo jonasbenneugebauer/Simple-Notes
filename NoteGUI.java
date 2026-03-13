@@ -21,6 +21,7 @@ private JButton deleteButton;
 private JButton editButton;
 private JFrame frame;
 private DefaultListModel<String> listModel;
+private NoteManager noteManager = new NoteManager();
 
 
 
@@ -70,6 +71,7 @@ public NoteGUI() {
 
     addButton.addActionListener(e -> addNote());
     deleteButton.addActionListener(e -> deleteNote());
+    editButton.addActionListener(e -> editNote());
     
 }
 
@@ -85,19 +87,38 @@ public void addNote(){
         System.out.println("Title or content cannot be empty.");
         
     Note note = new Note(LocalDateTime.now(), title, content);
+    noteManager.addNote(note);
     System.out.println("Note added: " + title);
 
     listModel.addElement(note.getTitle());
+    field.setText("");
+    area.setText("");
 }
 
 public void deleteNote(){
-    int selectedIndex = list.getSelectedIndex();
-    if(selectedIndex != -1){
-        listModel.remove(selectedIndex);
-        System.out.println("Note deleted: " + selectedIndex);
+    int index = list.getSelectedIndex();
+    if(index != -1){
+        noteManager.deleteNote(index);
+        listModel.remove(index);
+        System.out.println("Note deleted: " + index);
     } else {
         System.out.println("No note selected.");
     }
+}
+
+public void editNote(){
+    int index = list.getSelectedIndex();
+    if(index == -1) return;
+
+    String newTitle = field.getText();
+    String newContent = area.getText();
+    if(newTitle.isEmpty() || newContent.isEmpty()) {
+        System.out.println("Title or content cannot be empty.");
+        return;
+    }
+    noteManager.editNote(index, newTitle, newContent);
+    listModel.set(index, newTitle);
+    System.out.println("Note edited: " + index);
 }
 
 }
