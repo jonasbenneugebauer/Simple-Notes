@@ -10,6 +10,8 @@ import javax.swing.JScrollPane;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowListener;
 import java.time.LocalDateTime;
 public class NoteGUI {
     
@@ -22,8 +24,6 @@ private JButton editButton;
 private JFrame frame;
 private DefaultListModel<String> listModel;
 private NoteManager noteManager = new NoteManager();
-
-
 
 
 public NoteGUI() {
@@ -39,9 +39,8 @@ public NoteGUI() {
 
     frame.setLayout(new BorderLayout());
 
-
     frame.setSize(1080, 720);
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
   
 
     JPanel rightPanel = new JPanel();
@@ -69,12 +68,24 @@ public NoteGUI() {
 
     frame.setVisible(true);
 
+    noteManager.loadNotes();
+    for(Note note : noteManager.getNotes()){
+        listModel.addElement(note.getTitle());
+    }
+
     addButton.addActionListener(e -> addNote());
     deleteButton.addActionListener(e -> deleteNote());
     editButton.addActionListener(e -> editNote());
+
+    frame.addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowClosing(java.awt.event.WindowEvent e) {
+            noteManager.saveNotes();
+            System.exit(0);
+        }
+    });
     
 }
-
 public static void main(String[] args) {
     new NoteGUI();
 }

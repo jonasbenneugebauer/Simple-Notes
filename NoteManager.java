@@ -68,12 +68,12 @@ public class NoteManager {
                     }
                     title = content = null;
                     dateTime = null;
-                } else if (line.startsWith("Titel: ")) {
+                } else if (line.startsWith("Title: ")) {
                     title = line.substring(7);
-                } else if (line.startsWith("Datum: ")) {
+                } else if (line.startsWith("Date: ")) {
                     dateTime = LocalDateTime.parse(line.substring(7));
-                } else if (line.startsWith("Inhalt: ")) {
-                    content = line.substring(8);
+                } else if (line.startsWith("Content: ")) {
+                    content = line.substring(9);
                 }
             }
             // Letzte Note nicht vergessen
