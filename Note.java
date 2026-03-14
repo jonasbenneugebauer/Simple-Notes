@@ -5,7 +5,6 @@ public class Note {
     private String title;
     private String content;
 
-
     public Note(LocalDateTime date, String title, String content) {
         this.date = date;
         this.title = title;
@@ -23,6 +22,7 @@ public class Note {
     public String getContent() {
         return content;
     }
+
     public void setDate(LocalDateTime date) {
         this.date = date;
     }

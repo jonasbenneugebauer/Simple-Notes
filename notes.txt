@@ -2,4 +2,11 @@
 Title: Test1
 Date: 2026-03-14T16:28:27.924918
 Content: Hallo das ist ein test
-Was fehlt hier
+---
+Title: test2
+Date: 2026-03-14T16:39:15.358575
+Content: Ich lerne gerade wie man eine Notiz-App entwicklert
+---
+Title: test3
+Date: 2026-03-14T16:39:29.195640
+Content: Ziemlich cool hm?

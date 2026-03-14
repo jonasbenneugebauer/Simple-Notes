@@ -24,7 +24,7 @@ public class NoteManager {
         return notes;
     }
 
-    public void editNote(int index, String newTitle, String newContent){
+    public void editNote(int index, String newTitle, String newContent) {
         Note note = notes.get(index);
         note.setTitle(newTitle);
         note.setContent(newContent);
@@ -35,15 +35,15 @@ public class NoteManager {
     }
 
     public void saveNotes() {
-        try(BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))){
-            for(Note note : notes){
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
+            for (Note note : notes) {
                 writer.write("---");
                 writer.newLine();
-                writer.write("Title: " + note.getTitle());  
+                writer.write("Title: " + note.getTitle());
                 writer.newLine();
-                writer.write("Date: " + note.getDate().toString()); 
+                writer.write("Date: " + note.getDate().toString());
                 writer.newLine();
-                writer.write("Content: " + note.getContent());  
+                writer.write("Content: " + note.getContent());
                 writer.newLine();
             }
         } catch (IOException e) {
@@ -51,9 +51,10 @@ public class NoteManager {
         }
     }
 
-   public void loadNotes() {
+    public void loadNotes() {
         File file = new File(FILE_PATH);
-        if (!file.exists()) return; // Beim ersten Start noch keine Datei
+        if (!file.exists())
+            return; // Beim ersten Start noch keine Datei
 
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
             String line;
@@ -82,8 +83,8 @@ public class NoteManager {
             }
         } catch (IOException e) {
             System.out.println("Fehler beim Laden: " + e.getMessage());
-        } catch (Exception e){
-            System.out.println("Fehler beim parsen der Note: " +e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Fehler beim parsen der Note: " + e.getMessage());
 
         }
     }
