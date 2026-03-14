@@ -77,6 +77,20 @@ public NoteGUI() {
     deleteButton.addActionListener(e -> deleteNote());
     editButton.addActionListener(e -> editNote());
 
+    list.addListSelectionListener(e -> {
+    if (!e.getValueIsAdjusting()) {
+        int index = list.getSelectedIndex();
+        if (index != -1) {
+            Note note = noteManager.getNote(index);
+            field.setText(note.getTitle());
+            area.setText(note.getContent());
+            addButton.setEnabled(false); // Note ausgewählt → Add deaktivieren
+        } else {
+            addButton.setEnabled(true);  // Nichts ausgewählt → Add aktiv
+        }
+    }
+});
+
     frame.addWindowListener(new WindowAdapter() {
         @Override
         public void windowClosing(java.awt.event.WindowEvent e) {
