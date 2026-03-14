@@ -71,7 +71,7 @@ public class NoteManager {
                 } else if (line.startsWith("Title: ")) {
                     title = line.substring(7);
                 } else if (line.startsWith("Date: ")) {
-                    dateTime = LocalDateTime.parse(line.substring(7));
+                    dateTime = LocalDateTime.parse(line.substring(6));
                 } else if (line.startsWith("Content: ")) {
                     content = line.substring(9);
                 }
@@ -82,6 +82,9 @@ public class NoteManager {
             }
         } catch (IOException e) {
             System.out.println("Fehler beim Laden: " + e.getMessage());
+        } catch (Exception e){
+            System.out.println("Fehler beim parsen der Note: " +e.getMessage());
+
         }
     }
 }
