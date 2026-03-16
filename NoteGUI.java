@@ -6,6 +6,10 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
+
+import com.formdev.flatlaf.FlatDarkLaf;
+
 import javax.swing.JScrollPane;
 
 import java.awt.BorderLayout;
@@ -115,6 +119,11 @@ public class NoteGUI {
     }
 
     public static void main(String[] args) {
+        try {
+        UIManager.setLookAndFeel(new FlatDarkLaf());
+    } catch (Exception e) {
+        System.out.println("FlatLaf konnte nicht geladen werden: " + e.getMessage());
+    }
         new NoteGUI();
     }
 
