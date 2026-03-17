@@ -1,3 +1,4 @@
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -13,6 +14,7 @@ import com.formdev.flatlaf.FlatDarkLaf;
 import javax.swing.JScrollPane;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.time.LocalDateTime;
@@ -54,6 +56,19 @@ public class NoteGUI {
         buttonPanel.add(deleteButton);
         buttonPanel.add(newButton);
 
+        // Runde Buttons
+        addButton.putClientProperty("JButton.buttonType", "roundRect");
+        deleteButton.putClientProperty("JButton.buttonType", "roundRect");
+        newButton.putClientProperty("JButton.buttonType", "roundRect");
+
+        // Farben
+        addButton.setBackground(new Color(70, 130, 80)); // Grün
+        addButton.setForeground(Color.WHITE);
+        deleteButton.setBackground(new Color(150, 50, 50)); // Rot
+        deleteButton.setForeground(Color.WHITE);
+        newButton.setBackground(new Color(60, 100, 160)); // Blau
+        newButton.setForeground(Color.WHITE);
+        
         rightPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         JLabel titleLabel = new JLabel("Title:");
@@ -120,10 +135,10 @@ public class NoteGUI {
 
     public static void main(String[] args) {
         try {
-        UIManager.setLookAndFeel(new FlatDarkLaf());
-    } catch (Exception e) {
-        System.out.println("FlatLaf konnte nicht geladen werden: " + e.getMessage());
-    }
+            UIManager.setLookAndFeel(new FlatDarkLaf());
+        } catch (Exception e) {
+            System.out.println("FlatLaf konnte nicht geladen werden: " + e.getMessage());
+        }
         new NoteGUI();
     }
 
