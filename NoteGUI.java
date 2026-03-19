@@ -8,6 +8,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 
@@ -68,7 +70,7 @@ public class NoteGUI {
         deleteButton.setForeground(Color.WHITE);
         newButton.setBackground(new Color(60, 100, 160)); // Blau
         newButton.setForeground(Color.WHITE);
-        
+
         rightPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         JLabel titleLabel = new JLabel("Title:");
@@ -78,7 +80,16 @@ public class NoteGUI {
 
         rightPanel.add(titlePanel, BorderLayout.NORTH);
 
-        frame.add(list, BorderLayout.WEST);
+        JTextField searchField = new JTextField();
+        searchField.putClientProperty("JTextField.placeholderText", "Suche...");
+
+        JPanel leftPanel = new JPanel(new BorderLayout());
+        leftPanel.add(searchField, BorderLayout.NORTH);
+        leftPanel.add(list, BorderLayout.CENTER);
+        leftPanel.setPreferredSize(new Dimension(300, 0));
+
+        frame.add(leftPanel, BorderLayout.WEST);
+
         frame.add(rightPanel, BorderLayout.CENTER);
 
         list.setPreferredSize(new Dimension(300, 0));
@@ -109,25 +120,43 @@ public class NoteGUI {
             area.setText("");
         });
 
-        list.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                int index = list.getSelectedIndex();
-                if (index != -1) {
-                    Note note = noteManager.getNote(index);
-                    field.setText(note.getTitle());
-                    area.setText(note.getContent());
-                    addButton.setEnabled(false); // Note ausgewählt → Add deaktivieren
-                } else {
-                    addButton.setEnabled(true); // Nichts ausgewählt → Add aktiv
+      list.addListSelectionListener(e -> {
+    if (!e.getValueIsAdjusting()) {
+        String selectedTitle = (String) list.getSelectedValue();
+        if (selectedTitle != null) {
+            // Richtige Note über Titel suchen statt Index
+            for (int i = 0; i < noteManager.getNotes().size(); i++) {
+                if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
+                    field.setText(noteManager.getNote(i).getTitle());
+                    area.setText(noteManager.getNote(i).getContent());
+                    break;
                 }
             }
-        });
+            addButton.setEnabled(false);
+        } else {
+            addButton.setEnabled(true);
+        }
+    }
+});
 
         frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
                 noteManager.saveNotes();
                 System.exit(0);
+            }
+        });
+
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) {
+                filterNotes(searchField.getText());
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                filterNotes(searchField.getText());
+            }
+
+            public void changedUpdate(DocumentEvent e) {
             }
         });
 
@@ -168,6 +197,17 @@ public class NoteGUI {
         } else {
             System.out.println("No note selected.");
         }
+    }
+
+    public void filterNotes(String query) {
+        listModel.clear();
+        for (Note note : noteManager.getNotes()) {
+            if (note.getTitle().toLowerCase().contains(query.toLowerCase()) ||
+                    note.getContent().toLowerCase().contains(query.toLowerCase())) {
+                listModel.addElement(note.getTitle());
+            }
+        }
+
     }
 
 }
