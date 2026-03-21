@@ -32,6 +32,7 @@ public class NoteGUI {
     private JFrame frame;
     private DefaultListModel<String> listModel;
     private NoteManager noteManager = new NoteManager();
+    private boolean isLoading = false;
 
     public NoteGUI() {
         this.field = new JTextField();
@@ -102,13 +103,17 @@ public class NoteGUI {
         }
 
         addButton.addActionListener(e -> {
-            int index = list.getSelectedIndex();
-            if (index != -1) {
-                // Bestehende Note updaten
-                noteManager.editNote(index, field.getText(), area.getText());
-                listModel.set(index, field.getText());
+            String selectedTitle = (String) list.getSelectedValue();
+            if (selectedTitle != null) {
+                // Richtige Note über Titel finden
+                for (int i = 0; i < noteManager.getNotes().size(); i++) {
+                    if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
+                        noteManager.editNote(i, field.getText(), area.getText());
+                        listModel.set(list.getSelectedIndex(), field.getText());
+                        break;
+                    }
+                }
             } else {
-                // Neue Note
                 addNote();
             }
         });
@@ -120,24 +125,43 @@ public class NoteGUI {
             area.setText("");
         });
 
-      list.addListSelectionListener(e -> {
-    if (!e.getValueIsAdjusting()) {
-        String selectedTitle = (String) list.getSelectedValue();
-        if (selectedTitle != null) {
-            // Richtige Note über Titel suchen statt Index
-            for (int i = 0; i < noteManager.getNotes().size(); i++) {
-                if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
-                    field.setText(noteManager.getNote(i).getTitle());
-                    area.setText(noteManager.getNote(i).getContent());
-                    break;
+        list.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                String selectedTitle = (String) list.getSelectedValue();
+                if (selectedTitle != null) {
+                    // Richtige Note über Titel suchen statt Index
+                    for (int i = 0; i < noteManager.getNotes().size(); i++) {
+                        if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
+                            field.setText(noteManager.getNote(i).getTitle());
+                            area.setText(noteManager.getNote(i).getContent());
+                            break;
+                        }
+                    }
+                    addButton.setEnabled(false);
+                } else {
+                    addButton.setEnabled(true);
                 }
             }
-            addButton.setEnabled(false);
-        } else {
-            addButton.setEnabled(true);
-        }
-    }
-});
+        });
+        list.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                String selectedTitle = (String) list.getSelectedValue();
+                if (selectedTitle != null) {
+                    isLoading = true; // Ab hier nicht speichern!
+                    for (int i = 0; i < noteManager.getNotes().size(); i++) {
+                        if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
+                            field.setText(noteManager.getNote(i).getTitle());
+                            area.setText(noteManager.getNote(i).getContent());
+                            break;
+                        }
+                    }
+                    isLoading = false; // Ab hier wieder speichern
+                    addButton.setEnabled(false);
+                } else {
+                    addButton.setEnabled(true);
+                }
+            }
+        });
 
         frame.addWindowListener(new WindowAdapter() {
             @Override
@@ -159,6 +183,21 @@ public class NoteGUI {
             public void changedUpdate(DocumentEvent e) {
             }
         });
+        DocumentListener autoSave = new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) {
+                saveCurrentNote();
+            }
+
+            public void removeUpdate(DocumentEvent e) {
+                saveCurrentNote();
+            }
+
+            public void changedUpdate(DocumentEvent e) {
+            }
+        };
+
+        area.getDocument().addDocumentListener(autoSave);
+        field.getDocument().addDocumentListener(autoSave);
 
     }
 
@@ -189,11 +228,15 @@ public class NoteGUI {
     }
 
     public void deleteNote() {
-        int index = list.getSelectedIndex();
-        if (index != -1) {
-            noteManager.deleteNote(index);
-            listModel.remove(index);
-            System.out.println("Note deleted: " + index);
+        String selectedTitle = (String) list.getSelectedValue();
+        if (selectedTitle != null) {
+            for (int i = 0; i < noteManager.getNotes().size(); i++) {
+                if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
+                    noteManager.deleteNote(i);
+                    listModel.remove(list.getSelectedIndex());
+                    break;
+                }
+            }
         } else {
             System.out.println("No note selected.");
         }
@@ -208,6 +251,22 @@ public class NoteGUI {
             }
         }
 
+    }
+
+    public void saveCurrentNote() {
+        if (isLoading)
+            return; // Laden läuft → nicht speichern
+        String selectedTitle = (String) list.getSelectedValue();
+        if (selectedTitle == null)
+            return;
+
+        for (int i = 0; i < noteManager.getNotes().size(); i++) {
+            if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
+                noteManager.editNote(i, field.getText(), area.getText());
+                listModel.set(list.getSelectedIndex(), field.getText());
+                break;
+            }
+        }
     }
 
 }

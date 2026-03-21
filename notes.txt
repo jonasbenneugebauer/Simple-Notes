@@ -1,8 +1,18 @@
 ---
 Title: test2
 Date: 2026-03-14T16:39:15.358575
-Content: Ich lerne gerade wie man eine Notiz-App entwicklert
+Content: was geht
+
 ---
-Title: test3
+Title: test4
 Date: 2026-03-14T16:39:29.195640
-Content: Ziemlich cool hm?
+Content: Ich bin ein test
+
+
+Hallo!!
+
+Jaaaa
+---
+Title: Title
+Date: 2026-03-21T21:01:48.688643
+Content: Subtitle
