@@ -1,6 +1,7 @@
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -33,6 +34,9 @@ public class NoteGUI {
     private DefaultListModel<String> listModel;
     private NoteManager noteManager = new NoteManager();
     private boolean isLoading = false;
+    private JComboBox<String> categoryBox;
+    private JComboBox<String> filterBox;
+    private String[] categories = {"Allgemein", "Arbeit", "Privat", "Uni", "Ideen"};
 
     public NoteGUI() {
         this.field = new JTextField();
@@ -59,6 +63,10 @@ public class NoteGUI {
         buttonPanel.add(deleteButton);
         buttonPanel.add(newButton);
 
+        categoryBox = new JComboBox<>(new String[]{"Allgemein", "Arbeit", "Privat", "Uni", "Ideen"});
+
+        filterBox = new JComboBox<>(categories);
+
         // Runde Buttons
         addButton.putClientProperty("JButton.buttonType", "roundRect");
         deleteButton.putClientProperty("JButton.buttonType", "roundRect");
@@ -78,6 +86,7 @@ public class NoteGUI {
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.add(titleLabel, BorderLayout.NORTH);
         titlePanel.add(field, BorderLayout.CENTER);
+        titlePanel.add(categoryBox, BorderLayout.SOUTH);
 
         rightPanel.add(titlePanel, BorderLayout.NORTH);
 
@@ -88,6 +97,12 @@ public class NoteGUI {
         leftPanel.add(searchField, BorderLayout.NORTH);
         leftPanel.add(list, BorderLayout.CENTER);
         leftPanel.setPreferredSize(new Dimension(300, 0));
+        leftPanel.add(filterBox, BorderLayout.NORTH);
+
+        JPanel leftTopPanel = new JPanel(new BorderLayout());
+        leftTopPanel.add(filterBox, BorderLayout.NORTH);
+        leftTopPanel.add(searchField, BorderLayout.SOUTH);
+        leftPanel.add(leftTopPanel, BorderLayout.NORTH);
 
         frame.add(leftPanel, BorderLayout.WEST);
 
