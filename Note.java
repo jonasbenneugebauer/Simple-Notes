@@ -4,11 +4,13 @@ public class Note {
     private LocalDateTime date;
     private String title;
     private String content;
+    private String category;
 
-    public Note(LocalDateTime date, String title, String content) {
+    public Note(LocalDateTime date, String title, String content, String category) {
         this.date = date;
         this.title = title;
         this.content = content;
+        this.category = category;
     }
 
     public LocalDateTime getDate() {
@@ -33,5 +35,13 @@ public class Note {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 }
