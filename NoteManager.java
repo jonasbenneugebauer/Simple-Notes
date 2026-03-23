@@ -24,10 +24,11 @@ public class NoteManager {
         return notes;
     }
 
-    public void editNote(int index, String newTitle, String newContent) {
+    public void editNote(int index, String newTitle, String newContent, String newCategory) {
         Note note = notes.get(index);
         note.setTitle(newTitle);
         note.setContent(newContent);
+        note.setCategory(newCategory);
     }
 
     public Note getNote(int index) {
@@ -45,6 +46,8 @@ public class NoteManager {
                 writer.newLine();
                 writer.write("Content: " + note.getContent());
                 writer.newLine();
+                writer.write("Category: " + note.getCategory());
+                writer.newLine();
             }
         } catch (IOException e) {
             System.out.println("Error saving notes: " + e.getMessage());
@@ -58,16 +61,16 @@ public class NoteManager {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
             String line;
-            String title = null, content = null;
+            String title = null, content = null, category = null;
             LocalDateTime dateTime = null;
 
             while ((line = reader.readLine()) != null) {
                 if (line.equals("---")) {
                     // Vorherige Note speichern falls vorhanden
                     if (title != null) {
-                        notes.add(new Note(dateTime, title, content));
+                        notes.add(new Note(dateTime, title, content, category));
                     }
-                    title = content = null;
+                    title = content = category = null;
                     dateTime = null;
                 } else if (line.startsWith("Title: ")) {
                     title = line.substring(7);
@@ -75,11 +78,13 @@ public class NoteManager {
                     dateTime = LocalDateTime.parse(line.substring(6));
                 } else if (line.startsWith("Content: ")) {
                     content = line.substring(9);
+                } else if (line.startsWith("Category: ")) {
+                    category = line.substring(10);
                 }
             }
             // Letzte Note nicht vergessen
             if (title != null) {
-                notes.add(new Note(dateTime, title, content));
+                notes.add(new Note(dateTime, title, content, category));
             }
         } catch (IOException e) {
             System.out.println("Fehler beim Laden: " + e.getMessage());
