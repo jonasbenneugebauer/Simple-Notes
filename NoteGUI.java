@@ -1,4 +1,3 @@
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -36,11 +35,13 @@ public class NoteGUI {
     private boolean isLoading = false;
     private JComboBox<String> categoryBox;
     private JComboBox<String> filterBox;
-    private String[] categories = {"Allgemein", "Arbeit", "Privat", "Uni", "Ideen"};
+    private String[] categories = {"Alle", "Allgemein", "Arbeit", "Privat", "Uni", "Ideen"};
+    private JTextField searchField;
 
     public NoteGUI() {
         this.field = new JTextField();
         this.area = new JTextArea();
+        this.searchField = new JTextField();
         JScrollPane scrollPane = new JScrollPane(area);
         this.addButton = new JButton("Add");
         this.deleteButton = new JButton("Delete");
@@ -48,82 +49,71 @@ public class NoteGUI {
         this.newButton = new JButton("New");
         this.listModel = new DefaultListModel<>();
         this.list = new JList<>(listModel);
+        this.categoryBox = new JComboBox<>(new String[]{"Allgemein", "Arbeit", "Privat", "Uni", "Ideen"});
+        this.filterBox = new JComboBox<>(categories);
 
         frame.setLayout(new BorderLayout());
-
         frame.setSize(1080, 720);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
-        JPanel rightPanel = new JPanel();
-        rightPanel.setLayout(new BorderLayout());
+        // --- Rechtes Panel ---
+        JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.add(scrollPane, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(addButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(newButton);
+        rightPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-        categoryBox = new JComboBox<>(new String[]{"Allgemein", "Arbeit", "Privat", "Uni", "Ideen"});
-
-        filterBox = new JComboBox<>(categories);
-
-        // Runde Buttons
+        // Runde Buttons & Farben
         addButton.putClientProperty("JButton.buttonType", "roundRect");
         deleteButton.putClientProperty("JButton.buttonType", "roundRect");
         newButton.putClientProperty("JButton.buttonType", "roundRect");
-
-        // Farben
-        addButton.setBackground(new Color(70, 130, 80)); // Grün
+        addButton.setBackground(new Color(70, 130, 80));
         addButton.setForeground(Color.WHITE);
-        deleteButton.setBackground(new Color(150, 50, 50)); // Rot
+        deleteButton.setBackground(new Color(150, 50, 50));
         deleteButton.setForeground(Color.WHITE);
-        newButton.setBackground(new Color(60, 100, 160)); // Blau
+        newButton.setBackground(new Color(60, 100, 160));
         newButton.setForeground(Color.WHITE);
 
-        rightPanel.add(buttonPanel, BorderLayout.SOUTH);
-
+        // Titel + Kategorie oben rechts
         JLabel titleLabel = new JLabel("Title:");
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.add(titleLabel, BorderLayout.NORTH);
         titlePanel.add(field, BorderLayout.CENTER);
-        titlePanel.add(categoryBox, BorderLayout.SOUTH);
-
+        titlePanel.add(categoryBox, BorderLayout.SOUTH); // Kategorie-Dropdown
         rightPanel.add(titlePanel, BorderLayout.NORTH);
 
-        JTextField searchField = new JTextField();
+        // --- Linkes Panel ---
         searchField.putClientProperty("JTextField.placeholderText", "Suche...");
 
+        JPanel leftTopPanel = new JPanel(new BorderLayout());
+        leftTopPanel.add(filterBox, BorderLayout.NORTH);   // Filter oben
+        leftTopPanel.add(searchField, BorderLayout.SOUTH); // Suche darunter
+
         JPanel leftPanel = new JPanel(new BorderLayout());
-        leftPanel.add(searchField, BorderLayout.NORTH);
+        leftPanel.add(leftTopPanel, BorderLayout.NORTH);
         leftPanel.add(list, BorderLayout.CENTER);
         leftPanel.setPreferredSize(new Dimension(300, 0));
-        leftPanel.add(filterBox, BorderLayout.NORTH);
-
-        JPanel leftTopPanel = new JPanel(new BorderLayout());
-        leftTopPanel.add(filterBox, BorderLayout.NORTH);
-        leftTopPanel.add(searchField, BorderLayout.SOUTH);
-        leftPanel.add(leftTopPanel, BorderLayout.NORTH);
 
         frame.add(leftPanel, BorderLayout.WEST);
-
         frame.add(rightPanel, BorderLayout.CENTER);
-
-        list.setPreferredSize(new Dimension(300, 0));
-
         frame.setVisible(true);
 
+        // --- Daten laden ---
         noteManager.loadNotes();
         for (Note note : noteManager.getNotes()) {
             listModel.addElement(note.getTitle());
         }
 
+        // --- Listener ---
         addButton.addActionListener(e -> {
             String selectedTitle = (String) list.getSelectedValue();
             if (selectedTitle != null) {
-                // Richtige Note über Titel finden
                 for (int i = 0; i < noteManager.getNotes().size(); i++) {
                     if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
-                        noteManager.editNote(i, field.getText(), area.getText());
+                        noteManager.editNote(i, field.getText(), area.getText(), (String) categoryBox.getSelectedItem());
                         listModel.set(list.getSelectedIndex(), field.getText());
                         break;
                     }
@@ -134,49 +124,50 @@ public class NoteGUI {
         });
 
         deleteButton.addActionListener(e -> deleteNote());
+
         newButton.addActionListener(e -> {
             list.clearSelection();
             field.setText("");
             area.setText("");
+            categoryBox.setSelectedIndex(0);
         });
 
         list.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 String selectedTitle = (String) list.getSelectedValue();
                 if (selectedTitle != null) {
-                    // Richtige Note über Titel suchen statt Index
+                    isLoading = true;
                     for (int i = 0; i < noteManager.getNotes().size(); i++) {
                         if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
                             field.setText(noteManager.getNote(i).getTitle());
                             area.setText(noteManager.getNote(i).getContent());
+                            categoryBox.setSelectedItem(noteManager.getNote(i).getCategory()); // Kategorie laden
                             break;
                         }
                     }
+                    isLoading = false;
                     addButton.setEnabled(false);
                 } else {
                     addButton.setEnabled(true);
                 }
             }
         });
-        list.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                String selectedTitle = (String) list.getSelectedValue();
-                if (selectedTitle != null) {
-                    isLoading = true; // Ab hier nicht speichern!
-                    for (int i = 0; i < noteManager.getNotes().size(); i++) {
-                        if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
-                            field.setText(noteManager.getNote(i).getTitle());
-                            area.setText(noteManager.getNote(i).getContent());
-                            break;
-                        }
-                    }
-                    isLoading = false; // Ab hier wieder speichern
-                    addButton.setEnabled(false);
-                } else {
-                    addButton.setEnabled(true);
-                }
-            }
+
+        filterBox.addActionListener(e -> filterNotes(searchField.getText()));
+
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { filterNotes(searchField.getText()); }
+            public void removeUpdate(DocumentEvent e) { filterNotes(searchField.getText()); }
+            public void changedUpdate(DocumentEvent e) {}
         });
+
+        DocumentListener autoSave = new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { saveCurrentNote(); }
+            public void removeUpdate(DocumentEvent e) { saveCurrentNote(); }
+            public void changedUpdate(DocumentEvent e) {}
+        };
+        area.getDocument().addDocumentListener(autoSave);
+        field.getDocument().addDocumentListener(autoSave);
 
         frame.addWindowListener(new WindowAdapter() {
             @Override
@@ -185,35 +176,6 @@ public class NoteGUI {
                 System.exit(0);
             }
         });
-
-        searchField.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) {
-                filterNotes(searchField.getText());
-            }
-
-            public void removeUpdate(DocumentEvent e) {
-                filterNotes(searchField.getText());
-            }
-
-            public void changedUpdate(DocumentEvent e) {
-            }
-        });
-        DocumentListener autoSave = new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) {
-                saveCurrentNote();
-            }
-
-            public void removeUpdate(DocumentEvent e) {
-                saveCurrentNote();
-            }
-
-            public void changedUpdate(DocumentEvent e) {
-            }
-        };
-
-        area.getDocument().addDocumentListener(autoSave);
-        field.getDocument().addDocumentListener(autoSave);
-
     }
 
     public static void main(String[] args) {
@@ -228,18 +190,14 @@ public class NoteGUI {
     public void addNote() {
         String title = field.getText();
         String content = area.getText();
+        if (title.isEmpty() || content.isEmpty()) return;
 
-        if (title.isEmpty() || content.isEmpty())
-            return;
-        System.out.println("Title or content cannot be empty.");
-
-        Note note = new Note(LocalDateTime.now(), title, content);
+        Note note = new Note(LocalDateTime.now(), title, content, (String) categoryBox.getSelectedItem());
         noteManager.addNote(note);
-        System.out.println("Note added: " + title);
-
         listModel.addElement(note.getTitle());
         field.setText("");
         area.setText("");
+        categoryBox.setSelectedIndex(0);
     }
 
     public void deleteNote() {
@@ -252,36 +210,34 @@ public class NoteGUI {
                     break;
                 }
             }
-        } else {
-            System.out.println("No note selected.");
         }
     }
 
     public void filterNotes(String query) {
+        String selectedCategory = (String) filterBox.getSelectedItem();
         listModel.clear();
         for (Note note : noteManager.getNotes()) {
-            if (note.getTitle().toLowerCase().contains(query.toLowerCase()) ||
-                    note.getContent().toLowerCase().contains(query.toLowerCase())) {
+            boolean matchesSearch = note.getTitle().toLowerCase().contains(query.toLowerCase()) ||
+                    note.getContent().toLowerCase().contains(query.toLowerCase());
+            boolean matchesCategory = selectedCategory.equals("Alle") ||
+                    note.getCategory().equals(selectedCategory);
+            if (matchesSearch && matchesCategory) {
                 listModel.addElement(note.getTitle());
             }
         }
-
     }
 
     public void saveCurrentNote() {
-        if (isLoading)
-            return; // Laden läuft → nicht speichern
+        if (isLoading) return;
         String selectedTitle = (String) list.getSelectedValue();
-        if (selectedTitle == null)
-            return;
+        if (selectedTitle == null) return;
 
         for (int i = 0; i < noteManager.getNotes().size(); i++) {
             if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
-                noteManager.editNote(i, field.getText(), area.getText());
+                noteManager.editNote(i, field.getText(), area.getText(), (String) categoryBox.getSelectedItem());
                 listModel.set(list.getSelectedIndex(), field.getText());
                 break;
             }
         }
     }
-
 }
