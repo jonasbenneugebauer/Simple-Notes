@@ -1,3 +1,4 @@
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -18,8 +19,11 @@ import javax.swing.JScrollPane;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Insets;
 import java.awt.event.WindowAdapter;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class NoteGUI {
 
@@ -37,11 +41,13 @@ public class NoteGUI {
     private JComboBox<String> filterBox;
     private String[] categories = {"Alle", "Allgemein", "Arbeit", "Privat", "Uni", "Ideen"};
     private JTextField searchField;
+    private JLabel dateLabel;
 
     public NoteGUI() {
         this.field = new JTextField();
         this.area = new JTextArea();
         this.searchField = new JTextField();
+        this.dateLabel = new JLabel("");
         JScrollPane scrollPane = new JScrollPane(area);
         this.addButton = new JButton("Add");
         this.deleteButton = new JButton("Delete");
@@ -58,9 +64,11 @@ public class NoteGUI {
 
         // --- Rechtes Panel ---
         JPanel rightPanel = new JPanel(new BorderLayout());
+        rightPanel.setBorder(BorderFactory.createEmptyBorder(12, 14, 8, 14));
         rightPanel.add(scrollPane, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel();
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(6, 0, 4, 0));
         buttonPanel.add(addButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(newButton);
@@ -77,25 +85,43 @@ public class NoteGUI {
         newButton.setBackground(new Color(60, 100, 160));
         newButton.setForeground(Color.WHITE);
 
-        // Titel + Kategorie oben rechts
+        // Datum-Label
+        dateLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        dateLabel.setForeground(Color.GRAY);
+        dateLabel.setBorder(BorderFactory.createEmptyBorder(2, 4, 4, 0));
+
+        // Titel + Datum + Kategorie oben rechts
         JLabel titleLabel = new JLabel("Title:");
+        JPanel titleInnerPanel = new JPanel(new BorderLayout());
+        titleInnerPanel.add(field, BorderLayout.CENTER);
+        titleInnerPanel.add(dateLabel, BorderLayout.SOUTH);
+
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.add(titleLabel, BorderLayout.NORTH);
-        titlePanel.add(field, BorderLayout.CENTER);
-        titlePanel.add(categoryBox, BorderLayout.SOUTH); // Kategorie-Dropdown
+        titlePanel.add(titleInnerPanel, BorderLayout.CENTER);
+        titlePanel.add(categoryBox, BorderLayout.SOUTH);
         rightPanel.add(titlePanel, BorderLayout.NORTH);
+
+        // TextArea & Titelfeld Padding
+        area.setMargin(new Insets(12, 14, 12, 14));
+        field.setMargin(new Insets(6, 8, 6, 8));
 
         // --- Linkes Panel ---
         searchField.putClientProperty("JTextField.placeholderText", "Suche...");
 
         JPanel leftTopPanel = new JPanel(new BorderLayout());
-        leftTopPanel.add(filterBox, BorderLayout.NORTH);   // Filter oben
-        leftTopPanel.add(searchField, BorderLayout.SOUTH); // Suche darunter
+        leftTopPanel.add(filterBox, BorderLayout.NORTH);
+        leftTopPanel.add(searchField, BorderLayout.SOUTH);
 
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.add(leftTopPanel, BorderLayout.NORTH);
         leftPanel.add(list, BorderLayout.CENTER);
         leftPanel.setPreferredSize(new Dimension(300, 0));
+        leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(60, 60, 60)));
+
+        // Liste Padding & Zeilenhöhe
+        list.setFixedCellHeight(36);
+        list.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
 
         frame.add(leftPanel, BorderLayout.WEST);
         frame.add(rightPanel, BorderLayout.CENTER);
@@ -129,6 +155,7 @@ public class NoteGUI {
             list.clearSelection();
             field.setText("");
             area.setText("");
+            dateLabel.setText("");
             categoryBox.setSelectedIndex(0);
         });
 
@@ -139,9 +166,12 @@ public class NoteGUI {
                     isLoading = true;
                     for (int i = 0; i < noteManager.getNotes().size(); i++) {
                         if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
-                            field.setText(noteManager.getNote(i).getTitle());
-                            area.setText(noteManager.getNote(i).getContent());
-                            categoryBox.setSelectedItem(noteManager.getNote(i).getCategory()); // Kategorie laden
+                            Note n = noteManager.getNote(i);
+                            field.setText(n.getTitle());
+                            area.setText(n.getContent());
+                            categoryBox.setSelectedItem(n.getCategory());
+                            dateLabel.setText("Erstellt: " + n.getDate().format(
+                                DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")));
                             break;
                         }
                     }
@@ -197,6 +227,7 @@ public class NoteGUI {
         listModel.addElement(note.getTitle());
         field.setText("");
         area.setText("");
+        dateLabel.setText("");
         categoryBox.setSelectedIndex(0);
     }
 
