@@ -2,17 +2,19 @@
 Title: test2
 Date: 2026-03-14T16:39:15.358575
 Content: was geht
-
+Category: null
 ---
 Title: test4
 Date: 2026-03-14T16:39:29.195640
 Content: Ich bin ein test
-
-
-Hallo!!
-
-Jaaaa
+Category: null
 ---
 Title: Title
 Date: 2026-03-21T21:01:48.688643
 Content: Subtitle
+Category: null
+---
+Title: Die Seele will frei sein
+Date: 2026-03-23T10:35:49.674033
+Content: Das Thema ist Bewusstheit und das ganze soll täglich praktiziert werden
+Category: Privat
