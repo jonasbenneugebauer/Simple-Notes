@@ -1,35 +1,22 @@
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
+import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.*;
+import javax.swing.text.html.*;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 
-import javax.swing.JScrollPane;
-
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Insets;
-import java.awt.event.WindowAdapter;
+import java.awt.*;
+import java.awt.event.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class NoteGUI {
 
-    private JList list;
+    private JList<String> list;
     private JTextField field;
-    private JTextArea area;
+    private JTextPane textPane;
     private JButton addButton;
     private JButton deleteButton;
     private JButton newButton;
@@ -45,10 +32,12 @@ public class NoteGUI {
 
     public NoteGUI() {
         this.field = new JTextField();
-        this.area = new JTextArea();
+        this.textPane = new JTextPane();
+        this.textPane.setContentType("text/html");
         this.searchField = new JTextField();
         this.dateLabel = new JLabel("");
-        JScrollPane scrollPane = new JScrollPane(area);
+
+        JScrollPane scrollPane = new JScrollPane(textPane);
         this.addButton = new JButton("Add");
         this.deleteButton = new JButton("Delete");
         this.frame = new JFrame("Simple Notes");
@@ -62,9 +51,41 @@ public class NoteGUI {
         frame.setSize(1080, 720);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
+        // --- Toolbar ---
+        JToolBar toolbar = new JToolBar();
+        toolbar.setFloatable(false);
+        toolbar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(60, 60, 60)));
+
+        JButton boldBtn = new JButton("B");
+        boldBtn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        boldBtn.setToolTipText("Fett (Ctrl+B)");
+
+        JButton italicBtn = new JButton("I");
+        italicBtn.setFont(new Font("Segoe UI", Font.ITALIC, 13));
+        italicBtn.setToolTipText("Kursiv (Ctrl+I)");
+
+        JButton h1Btn = new JButton("H1");
+        h1Btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        h1Btn.setToolTipText("Überschrift");
+
+        JButton listBtn = new JButton("• Liste");
+        listBtn.setToolTipText("Aufzählung");
+
+        JButton normalBtn = new JButton("Normal");
+        normalBtn.setToolTipText("Normaler Text");
+
+        for (JButton btn : new JButton[]{boldBtn, italicBtn, h1Btn, listBtn, normalBtn}) {
+            btn.putClientProperty("JButton.buttonType", "roundRect");
+            btn.setFocusable(false);
+            toolbar.add(btn);
+            toolbar.addSeparator(new Dimension(4, 0));
+        }
+
         // --- Rechtes Panel ---
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setBorder(BorderFactory.createEmptyBorder(12, 14, 8, 14));
+
+        rightPanel.add(toolbar, BorderLayout.NORTH);
         rightPanel.add(scrollPane, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel();
@@ -74,7 +95,7 @@ public class NoteGUI {
         buttonPanel.add(newButton);
         rightPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Runde Buttons & Farben
+        // Buttons
         addButton.putClientProperty("JButton.buttonType", "roundRect");
         deleteButton.putClientProperty("JButton.buttonType", "roundRect");
         newButton.putClientProperty("JButton.buttonType", "roundRect");
@@ -90,7 +111,7 @@ public class NoteGUI {
         dateLabel.setForeground(Color.GRAY);
         dateLabel.setBorder(BorderFactory.createEmptyBorder(2, 4, 4, 0));
 
-        // Titel + Datum + Kategorie oben rechts
+        // Titel + Datum + Kategorie
         JLabel titleLabel = new JLabel("Title:");
         JPanel titleInnerPanel = new JPanel(new BorderLayout());
         titleInnerPanel.add(field, BorderLayout.CENTER);
@@ -100,10 +121,15 @@ public class NoteGUI {
         titlePanel.add(titleLabel, BorderLayout.NORTH);
         titlePanel.add(titleInnerPanel, BorderLayout.CENTER);
         titlePanel.add(categoryBox, BorderLayout.SOUTH);
-        rightPanel.add(titlePanel, BorderLayout.NORTH);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
 
-        // TextArea & Titelfeld Padding
-        area.setMargin(new Insets(12, 14, 12, 14));
+        // Toolbar + titlePanel zusammen oben
+        JPanel topRightPanel = new JPanel(new BorderLayout());
+        topRightPanel.add(titlePanel, BorderLayout.NORTH);
+        topRightPanel.add(toolbar, BorderLayout.SOUTH);
+        rightPanel.add(topRightPanel, BorderLayout.NORTH);
+        rightPanel.remove(toolbar); // toolbar nur in topRightPanel
+
         field.setMargin(new Insets(6, 8, 6, 8));
 
         // --- Linkes Panel ---
@@ -119,7 +145,6 @@ public class NoteGUI {
         leftPanel.setPreferredSize(new Dimension(300, 0));
         leftPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, new Color(60, 60, 60)));
 
-        // Liste Padding & Zeilenhöhe
         list.setFixedCellHeight(36);
         list.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
 
@@ -133,13 +158,67 @@ public class NoteGUI {
             listModel.addElement(note.getTitle());
         }
 
+        // --- Toolbar Aktionen ---
+        boldBtn.addActionListener(e -> {
+            HTMLEditorKit kit = (HTMLEditorKit) textPane.getEditorKit();
+            kit.getInputAttributes().removeAttribute(HTML.Tag.B);
+            new HTMLEditorKit.BoldAction().actionPerformed(e);
+            textPane.requestFocus();
+        });
+
+        italicBtn.addActionListener(e -> {
+            new HTMLEditorKit.ItalicAction().actionPerformed(e);
+            textPane.requestFocus();
+        });
+
+        h1Btn.addActionListener(e -> {
+            wrapSelectionInTag("h1");
+            textPane.requestFocus();
+        });
+
+        listBtn.addActionListener(e -> {
+            wrapSelectionInTag("ul-li");
+            textPane.requestFocus();
+        });
+
+        normalBtn.addActionListener(e -> {
+            // Formatierung zurücksetzen via neuen p-Paragraph
+            HTMLDocument doc = (HTMLDocument) textPane.getDocument();
+            int start = textPane.getSelectionStart();
+            int end = textPane.getSelectionEnd();
+            try {
+                String selected = textPane.getSelectedText();
+                if (selected != null) {
+                    doc.remove(start, end - start);
+                    doc.insertString(start, selected, null);
+                }
+            } catch (BadLocationException ex) {
+                ex.printStackTrace();
+            }
+            textPane.requestFocus();
+        });
+
+        // Ctrl+B / Ctrl+I shortcuts
+        textPane.getInputMap().put(KeyStroke.getKeyStroke("ctrl B"), "bold");
+        textPane.getActionMap().put("bold", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                boldBtn.doClick();
+            }
+        });
+        textPane.getInputMap().put(KeyStroke.getKeyStroke("ctrl I"), "italic");
+        textPane.getActionMap().put("italic", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                italicBtn.doClick();
+            }
+        });
+
         // --- Listener ---
         addButton.addActionListener(e -> {
             String selectedTitle = (String) list.getSelectedValue();
             if (selectedTitle != null) {
                 for (int i = 0; i < noteManager.getNotes().size(); i++) {
                     if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
-                        noteManager.editNote(i, field.getText(), area.getText(), (String) categoryBox.getSelectedItem());
+                        noteManager.editNote(i, field.getText(), getContent(), (String) categoryBox.getSelectedItem());
                         listModel.set(list.getSelectedIndex(), field.getText());
                         break;
                     }
@@ -154,7 +233,7 @@ public class NoteGUI {
         newButton.addActionListener(e -> {
             list.clearSelection();
             field.setText("");
-            area.setText("");
+            textPane.setText("");
             dateLabel.setText("");
             categoryBox.setSelectedIndex(0);
         });
@@ -168,7 +247,8 @@ public class NoteGUI {
                         if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
                             Note n = noteManager.getNote(i);
                             field.setText(n.getTitle());
-                            area.setText(n.getContent());
+                            textPane.setText(n.getContent());
+                            textPane.setCaretPosition(0);
                             categoryBox.setSelectedItem(n.getCategory());
                             dateLabel.setText("Erstellt: " + n.getDate().format(
                                 DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")));
@@ -196,7 +276,7 @@ public class NoteGUI {
             public void removeUpdate(DocumentEvent e) { saveCurrentNote(); }
             public void changedUpdate(DocumentEvent e) {}
         };
-        area.getDocument().addDocumentListener(autoSave);
+        textPane.getDocument().addDocumentListener(autoSave);
         field.getDocument().addDocumentListener(autoSave);
 
         frame.addWindowListener(new WindowAdapter() {
@@ -206,6 +286,41 @@ public class NoteGUI {
                 System.exit(0);
             }
         });
+    }
+
+    // HTML-Content aus JTextPane holen
+    private String getContent() {
+        HTMLDocument doc = (HTMLDocument) textPane.getDocument();
+        try {
+            java.io.StringWriter sw = new java.io.StringWriter();
+            new HTMLEditorKit().write(sw, doc, 0, doc.getLength());
+            return sw.toString();
+        } catch (Exception e) {
+            return textPane.getText();
+        }
+    }
+
+    // Selektion in HTML-Tag einwickeln
+    private void wrapSelectionInTag(String tag) {
+        String selected = textPane.getSelectedText();
+        if (selected == null || selected.isEmpty()) return;
+
+        int start = textPane.getSelectionStart();
+        int end = textPane.getSelectionEnd();
+        HTMLDocument doc = (HTMLDocument) textPane.getDocument();
+
+        try {
+            doc.remove(start, end - start);
+            String html;
+            if (tag.equals("ul-li")) {
+                html = "<ul><li>" + selected + "</li></ul>";
+            } else {
+                html = "<" + tag + ">" + selected + "</" + tag + ">";
+            }
+            ((HTMLEditorKit) textPane.getEditorKit()).insertHTML(doc, start, html, 0, 0, null);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
@@ -219,14 +334,14 @@ public class NoteGUI {
 
     public void addNote() {
         String title = field.getText();
-        String content = area.getText();
-        if (title.isEmpty() || content.isEmpty()) return;
+        String content = getContent();
+        if (title.isEmpty()) return;
 
         Note note = new Note(LocalDateTime.now(), title, content, (String) categoryBox.getSelectedItem());
         noteManager.addNote(note);
         listModel.addElement(note.getTitle());
         field.setText("");
-        area.setText("");
+        textPane.setText("");
         dateLabel.setText("");
         categoryBox.setSelectedIndex(0);
     }
@@ -265,7 +380,7 @@ public class NoteGUI {
 
         for (int i = 0; i < noteManager.getNotes().size(); i++) {
             if (noteManager.getNote(i).getTitle().equals(selectedTitle)) {
-                noteManager.editNote(i, field.getText(), area.getText(), (String) categoryBox.getSelectedItem());
+                noteManager.editNote(i, field.getText(), getContent(), (String) categoryBox.getSelectedItem());
                 listModel.set(list.getSelectedIndex(), field.getText());
                 break;
             }
