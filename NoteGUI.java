@@ -150,6 +150,7 @@ public class NoteGUI {
 
         frame.add(leftPanel, BorderLayout.WEST);
         frame.add(rightPanel, BorderLayout.CENTER);
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
         // --- Daten laden ---
